@@ -1,5 +1,5 @@
 import csv
-
+import random
 
 class Question:
     @classmethod
@@ -28,9 +28,44 @@ class Question:
         self.answer = answer
         self.is_quiz = is_quiz
         self.is_active = is_active
-        self.attempts = 0
-        self.correct_attempts = 0
+        self.shown = 0
+        self.correct = 0
         self.options = options
+
+    @property
+    def text(self):
+        return self._text
+
+    @text.setter
+    def text(self, _text):
+        if _text == "":
+            raise ValueError("Question text cannot be empty")
+        self._text = _text
+
+    @property
+    def answer(self):
+        return self._answer
+
+    @answer.setter
+    def answer(self, _answer):
+        if _answer == "":
+            raise ValueError("Question answer cannot be empty")
+        self._answer = _answer
+
+    def check_answer(self, user_answer):
+        self.shown += 1
+        if user_answer.strip().lower() == self.answer.strip().lower():
+            self.correct += 1
+            return True
+        return False
+
+    def disable(self):
+        self.is_active = False
+
+    def enable(self):
+        self.is_active = True
+    
+    def add_question(self):
         with open(self.filename, "a", newline="") as csvfile:
             fieldnames = [
                 "question_id",
@@ -53,37 +88,87 @@ class Question:
                     "is_active": self.is_active,
                     "shown": 0,
                     "correct": 0,
+                })
+
+class QuestionManager:
+    def __init__(self, filename="questions.csv"):
+        self.filename = filename
+        self.questions = []
+
+    def load_questions(self):
+        with open(self.filename, "r") as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                question = {
+                    "question_id": row["question_id"],
+                    "text": row["text"],
+                    "answer": row["answer"],
+                    "is_quiz": row["is_quiz"],
+                    "options": row["options"],
+                    "is_active": row["is_active"],
+                    "shown": row["shown"],
+                    "correct": row["correct"],
                 }
-            )
+                self.questions.append(question)
 
-    @property
-    def text(self):
-        return self._text
+    def get_questions(self):
+        return self.questions
 
-    @text.setter
-    def text(self, _text):
-        if _text == "":
-            raise ValueError("Question text cannot be empty")
-        self._text = _text
+    def get_active_questions(self):
+        return [question for question in self.questions if question["is_active"] == "True"]
 
-    @property
-    def answer(self):
-        return self._answer
+    def disable_question(self, question_id):
+        for question in self.questions:
+            if question["question_id"] == question_id:
+                question["is_active"] = "False"
+                return True
+        return False
 
-    @answer.setter
-    def answer(self, _answer):
-        if _answer == "":
-            raise ValueError("Question answer cannot be empty")
-        self._answer = _answer
+    def enable_question(self, question_id):
+        for question in self.questions:
+            if question["question_id"] == question_id:
+                question["is_active"] = "True"
+                return True
+        return False
+   
 
-    def disable(self):
-        self.is_active = False
+class PracticeMode:
+    def __init__(self, question_manager):
+        self.question_manager = question_manager
+    
+    def practice(self):
+        active_questions = self.question_manager.get_active_questions()
+        if len(active_questions) < 4:
+            print("Practice mode requires at least 5 active questions.")
+            return
+        
+        while True:
+            question = self._select_question(active_questions)
+            user_answer = input(question["text"] + "\n")
 
-    def enable(self):
-        self.is_active = True
+            if question["is_quiz"].lower().strip() == 'yes':
+                # Display answer options for quiz questions
+                for index, option in enumerate(question["options"]):
+                    print(f"{index + 1}. {option}")
+                user_choice = int(input("Enter your choice (1, 2, 3, ...): "))
+                user_answer = question.options[user_choice - 1]
+            
 
+
+            if Question(question["text"], question["answer"], question["is_quiz"],question["options"],question["is_active"],question["shown"],question["correct"]).check_answer(user_answer):
+                print("Correct!")
+            else:
+                print("Incorrect!")
+
+    def _select_question(self, questions):
+        weights = [1 / (int(question["shown"]) + 1) for question in questions]
+        return random.choices(questions, weights=weights, k=1)[0]
 
 def main():
+    question_manager = QuestionManager()
+    question_manager.load_questions()
+    practice_mode = PracticeMode(question_manager)
+
     # Main menu loop
     while True:
         print("\nMain Menu:")
@@ -113,6 +198,7 @@ def main():
                     question = Question(text, answer, is_quiz, options)
                 else:
                     question = Question(text, answer, is_quiz)
+                question.add_question()
             except ValueError as e:
                 print(e)
 
@@ -126,6 +212,8 @@ def main():
         elif choice == "4":
             # Enter Practice mode
             print("\nPractice mode:")
+            practice_mode.practice()
+
         elif choice == "5":
             # Enter Test mode
             print("\nTest mode:")
