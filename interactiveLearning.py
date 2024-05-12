@@ -1,59 +1,121 @@
+import csv
+
 class Question:
-    def __init__(self, id, type, text, options=None, answer=None):
-        pass
+    @classmethod
+    def find_max_question_id(cls, filename):
+        max_id = 0  # Initialize max_id to a value lower than any possible ID
+        with open(filename, "r") as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                max_id = max(max_id, int(row["question_id"]))
+        return max_id
 
-class QuestionManager:
-    def __init__(self):
-        pass
+    def __init__(
+        self,
+        text,
+        answer,
+        is_quiz,
+        options=None,
+        is_active=True,
+        shown=0,
+        correct=0,
+        filename="questions.csv",
+    ):
+        self.filename = filename
+        self.question_id = self.find_max_question_id(filename) + 1
+        self.text = text
+        self.answer = answer
+        self.is_quiz = is_quiz
+        self.is_active = is_active
+        self.attempts = 0
+        self.correct_attempts = 0
+        self.options = options
+        with open(self.filename, "a", newline="") as csvfile:
+            fieldnames = [
+                "question_id",
+                "text",
+                "answer",
+                "is_quiz",
+                "options",
+                "is_active",
+                "shown",
+                "correct",
+            ]
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writerow(
+                {
+                    "question_id": self.question_id,
+                    "text": self.text,
+                    "answer": self.answer,
+                    "is_quiz": self.is_quiz,
+                    "options": self.options,
+                    "is_active": self.is_active,
+                    "shown": 0,
+                    "correct": 0,
+                }
+            )
 
-    def add_question(self, question):
-        pass
+    @property
+    def text(self):
+        return self._text
 
-    def disable_question(self, id):
-        pass
+    @text.setter
+    def text(self, _text):
+        if _text == "":
+            raise ValueError("Question text cannot be empty")
+        self._text = _text
 
-    def enable_question(self, id):
-        pass
+    def disable(self):
+        self.is_active = False
 
-    def view_statistics(self):
-        pass
-
-    def save_questions(self):
-        pass
-
-    def load_questions(self):
-        pass
-
-class PracticeSession:
-    def __init__(self, question_manager):
-        pass
-
-    def start(self):
-        pass
-
-class TestSession:
-    def __init__(self, question_manager):
-        pass
-
-    def start(self):
-        pass
-
-class Profile:
-    def __init__(self, name):
-        pass
-
-    def update_statistics(self, question_id, is_correct):
-        pass
-
-    def save_statistics(self):
-        pass
-
-    def load_statistics(self):
-        pass
+    def enable(self):
+        self.is_active = True
 
 
 def main():
-    pass
+    # Main menu loop
+    while True:
+        print("\nMain Menu:")
+        print("1. Adding questions")
+        print("2. Statistics viewing")
+        print("3. Disable/Enable questions")
+        print("4. Practice mode")
+        print("5. Test mode")
+        print("6. Exit")
+
+        choice = input("Enter your choice: ")
+
+        if choice == "1":
+            # Enter Adding questions mode
+            print("\nAdding questions mode:")
+            try:
+                text = input("Enter question text: ")
+                answer = input("Enter question answer: ")
+                is_quiz = input("Is quiz: ")
+                question = Question(text, answer, is_quiz)
+            except ValueError as e:
+                print(e)
+
+        elif choice == "2":
+            # Enter Statistics viewing mode
+            print("\nStatistics viewing mode:")
+        elif choice == "3":
+            # Enter Disable/Enable questions mode
+            print("\nDisable/Enable questions mode:")
+            pass
+        elif choice == "4":
+            # Enter Practice mode
+            print("\nPractice mode:")
+        elif choice == "5":
+            # Enter Test mode
+            print("\nTest mode:")
+            pass
+        elif choice == "6":
+            # Exit the program
+            print("Exiting program.")
+            break
+        else:
+            print("Invalid choice. Please enter a number between 1 and 6.")
 
 if __name__ == "__main__":
     main()
