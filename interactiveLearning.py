@@ -1,9 +1,10 @@
 import csv
 
+
 class Question:
     @classmethod
     def find_max_question_id(cls, filename):
-        max_id = 0  # Initialize max_id to a value lower than any possible ID
+        max_id = 0
         with open(filename, "r") as file:
             reader = csv.DictReader(file)
             for row in reader:
@@ -65,6 +66,16 @@ class Question:
             raise ValueError("Question text cannot be empty")
         self._text = _text
 
+    @property
+    def answer(self):
+        return self._answer
+
+    @answer.setter
+    def answer(self, _answer):
+        if _answer == "":
+            raise ValueError("Question answer cannot be empty")
+        self._answer = _answer
+
     def disable(self):
         self.is_active = False
 
@@ -92,7 +103,16 @@ def main():
                 text = input("Enter question text: ")
                 answer = input("Enter question answer: ")
                 is_quiz = input("Is quiz: ")
-                question = Question(text, answer, is_quiz)
+                if is_quiz.lower().strip() == "yes":
+                    options = []
+                    while True:
+                        option = input("Enter an option (or type 'done' to finish): ")
+                        if option.lower() == 'done':
+                            break
+                        options.append(option)
+                    question = Question(text, answer, is_quiz, options)
+                else:
+                    question = Question(text, answer, is_quiz)
             except ValueError as e:
                 print(e)
 
@@ -116,6 +136,7 @@ def main():
             break
         else:
             print("Invalid choice. Please enter a number between 1 and 6.")
+
 
 if __name__ == "__main__":
     main()
