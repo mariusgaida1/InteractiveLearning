@@ -116,12 +116,37 @@ class QuestionManager:
             question for question in self.questions if question["is_active"] == "True"
         ]
 
-    def disable_question(self, question_id):
+    def disable_enable_question(self, question_id):
         for question in self.questions:
             if question["question_id"] == question_id:
-                question["is_active"] = "False"
-                return True
-        return False
+                print(type(question["question_id"]))
+                if question["is_active"] == str(True):
+                    confirm = input('Type "Yes" to confirm question disabling: ')
+                    if confirm.lower().strip() == "yes":
+                        question["is_active"] = str(False)
+                        break
+                elif question["is_active"] == str(False):
+                    confirm = input('Type "Yes" to confirm question enabling: ')
+                    if confirm.lower().strip() == "yes":
+                        question["is_active"] = str(True)
+                        break
+
+        # Update the CSV file
+        with open(self.filename, "w", newline="") as csvfile:
+            fieldnames = [
+                "question_id",
+                "text",
+                "answer",
+                "is_quiz",
+                "options",
+                "is_active",
+                "shown",
+                "correct",
+            ]
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(self.questions)
+
 
     def enable_question(self, question_id):
         for question in self.questions:
@@ -300,7 +325,8 @@ def main():
         elif choice == "3":
             # Enter Disable/Enable questions mode
             print("\nDisable/Enable questions mode:")
-            pass
+            question_id = input("Please enter question id for enabling or disabling: ")
+            question_manager.disable_enable_question(question_id)
         elif choice == "4":
             # Enter Practice mode
             print("\nPractice mode:")
