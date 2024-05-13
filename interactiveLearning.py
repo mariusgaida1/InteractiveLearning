@@ -52,13 +52,6 @@ class Question:
             raise ValueError("Question answer cannot be empty")
         self._answer = _answer
 
-    def check_answer(self, user_answer):
-        self.shown += 1
-        if user_answer.strip().lower() == self.answer.strip().lower():
-            self.correct += 1
-            return True
-        return False
-
     def disable(self):
         self.is_active = False
 
@@ -117,6 +110,7 @@ class QuestionManager:
     def get_active_questions(self):
         return [question for question in self.questions if question["is_active"] == "True"]
 
+
     def disable_question(self, question_id):
         for question in self.questions:
             if question["question_id"] == question_id:
@@ -154,8 +148,8 @@ class PracticeMode:
                 user_answer = question.options[user_choice - 1]
             
 
-
-            if Question(question["text"], question["answer"], question["is_quiz"],question["options"],question["is_active"],question["shown"],question["correct"]).check_answer(user_answer):
+            if self.check_answer(user_answer, question):
+            #if Question(question["text"], question["answer"], question["is_quiz"],question["options"],question["is_active"],question["shown"],question["correct"]).check_answer(user_answer):
                 print("Correct!")
             else:
                 print("Incorrect!")
@@ -163,6 +157,13 @@ class PracticeMode:
     def _select_question(self, questions):
         weights = [1 / (int(question["shown"]) + 1) for question in questions]
         return random.choices(questions, weights=weights, k=1)[0]
+    
+    def check_answer(self, user_answer, question):
+        #self.shown += 1
+        if user_answer.strip().lower() == question["answer"].strip().lower():
+            #self.correct += 1
+            return True
+        return False
 
 def main():
     question_manager = QuestionManager()
