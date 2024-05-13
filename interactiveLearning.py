@@ -146,6 +146,28 @@ class QuestionManager:
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
             writer.writerows(self.questions)
+    
+    def update_correct_field(self, question_id):
+        for question in self.questions:
+            if question["question_id"] == question_id:
+                question["correct"] = int(question["correct"]) + 1
+                break
+
+        # Update the CSV file
+        with open(self.filename, "w", newline="") as csvfile:
+            fieldnames = [
+                "question_id",
+                "text",
+                "answer",
+                "is_quiz",
+                "options",
+                "is_active",
+                "shown",
+                "correct",
+            ]
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(self.questions)    
 
 class PracticeMode:
     def __init__(self, question_manager):
@@ -172,6 +194,7 @@ class PracticeMode:
             if self.check_answer(user_answer, question):
             #if Question(question["text"], question["answer"], question["is_quiz"],question["options"],question["is_active"],question["shown"],question["correct"]).check_answer(user_answer):
                 print("Correct!")
+                self.question_manager.update_correct_field(question["question_id"])
             else:
                 print("Incorrect!")
 
