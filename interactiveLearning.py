@@ -175,7 +175,7 @@ class PracticeMode:
     
     def practice(self):
         active_questions = self.question_manager.get_active_questions()
-        if len(active_questions) < 4:
+        if len(active_questions) < 5:
             print("Practice mode requires at least 5 active questions.")
             return
         
@@ -211,10 +211,41 @@ class PracticeMode:
             return True
         return False
 
+class TestMode:
+    def __init__(self, question_manager):
+        self.question_manager = question_manager
+
+    def take_test(self, num_questions):
+        active_questions = self.question_manager.get_active_questions()
+        num_questions = int(num_questions)
+        if len(active_questions) < num_questions:
+            print("Not enough active questions to take the test.")
+            return
+        elif len(active_questions) < 5:
+            print("Practice mode requires at least 5 active questions.")
+            return
+        
+        selected_questions = random.sample(active_questions, num_questions)
+        score = 0
+        for question in selected_questions:
+            user_answer = input(question["text"] + "\nYour answer: ")
+            if self.check_answer(user_answer, question):
+                score += 1
+        
+        print(f"Test completed. Score: {score}/{num_questions}")
+
+    def check_answer(self, user_answer, question):
+    #self.shown += 1
+        if user_answer.strip().lower() == question["answer"].strip().lower():
+            #self.correct += 1
+            return True
+        return False
+
 def main():
     question_manager = QuestionManager()
     question_manager.load_questions()
     practice_mode = PracticeMode(question_manager)
+    test_mode = TestMode(question_manager)
 
     # Main menu loop
     while True:
@@ -264,7 +295,8 @@ def main():
         elif choice == "5":
             # Enter Test mode
             print("\nTest mode:")
-            pass
+            test_mode.take_test(input("How many questions? "))
+            
         elif choice == "6":
             # Exit the program
             print("Exiting program.")
