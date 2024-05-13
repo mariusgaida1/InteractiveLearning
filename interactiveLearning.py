@@ -120,15 +120,15 @@ class QuestionManager:
         for question in self.questions:
             if question["question_id"] == question_id:
                 print(type(question["question_id"]))
-                if question["is_active"] == str(True):
+                if question["is_active"] == "True":
                     confirm = input('Type "Yes" to confirm question disabling: ')
                     if confirm.lower().strip() == "yes":
-                        question["is_active"] = str(False)
+                        question["is_active"] = "False"
                         break
-                elif question["is_active"] == str(False):
+                elif question["is_active"] == "False":
                     confirm = input('Type "Yes" to confirm question enabling: ')
                     if confirm.lower().strip() == "yes":
-                        question["is_active"] = str(True)
+                        question["is_active"] = "True"
                         break
 
         # Update the CSV file
@@ -198,6 +198,24 @@ class QuestionManager:
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
             writer.writerows(self.questions)
+
+    def view_statistics(self):
+        print("Statistics for all questions:")
+        print("-----------------------------------------------------")
+        print("{:<10} {:<10} {:<50} {:<15} {:<15}".format(
+            "ID", "Active", "Question Text", "Times Shown", "Accuracy (%)"))
+        print("-----------------------------------------------------")
+        for question in self.questions:
+            question_id = question["question_id"]
+            is_active = question["is_active"]
+            question_text = question["text"]
+            times_shown = int(question["shown"])
+            correct = int(question["correct"])
+            total_attempts = times_shown if times_shown > 0 else 1  # Prevent division by zero
+            accuracy = (correct / total_attempts) * 100
+            print("{:<10} {:<10} {:<50} {:<15} {:<15.2f}".format(
+                question_id, is_active, question_text[:50], times_shown, accuracy))
+        print("-----------------------------------------------------")
 
 
 class PracticeMode:
@@ -322,6 +340,7 @@ def main():
         elif choice == "2":
             # Enter Statistics viewing mode
             print("\nStatistics viewing mode:")
+            question_manager.view_statistics()
         elif choice == "3":
             # Enter Disable/Enable questions mode
             print("\nDisable/Enable questions mode:")
