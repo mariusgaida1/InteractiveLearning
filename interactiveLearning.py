@@ -104,8 +104,8 @@ class QuestionManager:
                 }
                 self.questions.append(question)
 
-    def get_questions(self):
-        return self.questions
+    #def get_questions(self):
+     #   return self.questions
 
     def get_active_questions(self):
         return [question for question in self.questions if question["is_active"] == "True"]
@@ -124,7 +124,28 @@ class QuestionManager:
                 question["is_active"] = "True"
                 return True
         return False
-   
+    
+    def update_shown_field(self, question_id):
+        for question in self.questions:
+            if question["question_id"] == question_id:
+                question["shown"] = int(question["shown"]) + 1
+                break
+
+        # Update the CSV file
+        with open(self.filename, "w", newline="") as csvfile:
+            fieldnames = [
+                "question_id",
+                "text",
+                "answer",
+                "is_quiz",
+                "options",
+                "is_active",
+                "shown",
+                "correct",
+            ]
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(self.questions)
 
 class PracticeMode:
     def __init__(self, question_manager):
@@ -153,6 +174,8 @@ class PracticeMode:
                 print("Correct!")
             else:
                 print("Incorrect!")
+
+            self.question_manager.update_shown_field(question["question_id"])
 
     def _select_question(self, questions):
         weights = [1 / (int(question["shown"]) + 1) for question in questions]
