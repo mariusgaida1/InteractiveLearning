@@ -1,5 +1,7 @@
 import csv
 import random
+from datetime import datetime
+
 
 class Question:
     @classmethod
@@ -57,7 +59,7 @@ class Question:
 
     def enable(self):
         self.is_active = True
-    
+
     def add_question(self):
         with open(self.filename, "a", newline="") as csvfile:
             fieldnames = [
@@ -81,7 +83,9 @@ class Question:
                     "is_active": self.is_active,
                     "shown": 0,
                     "correct": 0,
-                })
+                }
+            )
+
 
 class QuestionManager:
     def __init__(self, filename="questions.csv"):
@@ -104,12 +108,13 @@ class QuestionManager:
                 }
                 self.questions.append(question)
 
-    #def get_questions(self):
-     #   return self.questions
+    # def get_questions(self):
+    #   return self.questions
 
     def get_active_questions(self):
-        return [question for question in self.questions if question["is_active"] == "True"]
-
+        return [
+            question for question in self.questions if question["is_active"] == "True"
+        ]
 
     def disable_question(self, question_id):
         for question in self.questions:
@@ -124,7 +129,7 @@ class QuestionManager:
                 question["is_active"] = "True"
                 return True
         return False
-    
+
     def update_shown_field(self, question_id):
         for question in self.questions:
             if question["question_id"] == question_id:
@@ -146,7 +151,7 @@ class QuestionManager:
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
             writer.writerows(self.questions)
-    
+
     def update_correct_field(self, question_id):
         for question in self.questions:
             if question["question_id"] == question_id:
@@ -167,32 +172,32 @@ class QuestionManager:
             ]
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
-            writer.writerows(self.questions)    
+            writer.writerows(self.questions)
+
 
 class PracticeMode:
     def __init__(self, question_manager):
         self.question_manager = question_manager
-    
+
     def practice(self):
         active_questions = self.question_manager.get_active_questions()
         if len(active_questions) < 5:
             print("Practice mode requires at least 5 active questions.")
             return
-        
+
         while True:
             question = self._select_question(active_questions)
             user_answer = input(question["text"] + "\n")
 
-            if question["is_quiz"].lower().strip() == 'yes':
+            if question["is_quiz"].lower().strip() == "yes":
                 # Display answer options for quiz questions
                 for index, option in enumerate(question["options"]):
                     print(f"{index + 1}. {option}")
                 user_choice = int(input("Enter your choice (1, 2, 3, ...): "))
                 user_answer = question.options[user_choice - 1]
-            
 
             if self.check_answer(user_answer, question):
-            #if Question(question["text"], question["answer"], question["is_quiz"],question["options"],question["is_active"],question["shown"],question["correct"]).check_answer(user_answer):
+                # if Question(question["text"], question["answer"], question["is_quiz"],question["options"],question["is_active"],question["shown"],question["correct"]).check_answer(user_answer):
                 print("Correct!")
                 self.question_manager.update_correct_field(question["question_id"])
             else:
@@ -203,13 +208,14 @@ class PracticeMode:
     def _select_question(self, questions):
         weights = [1 / (int(question["shown"]) + 1) for question in questions]
         return random.choices(questions, weights=weights, k=1)[0]
-    
+
     def check_answer(self, user_answer, question):
-        #self.shown += 1
+        # self.shown += 1
         if user_answer.strip().lower() == question["answer"].strip().lower():
-            #self.correct += 1
+            # self.correct += 1
             return True
         return False
+
 
 class TestMode:
     def __init__(self, question_manager):
@@ -224,22 +230,30 @@ class TestMode:
         elif len(active_questions) < 5:
             print("Practice mode requires at least 5 active questions.")
             return
-        
+
         selected_questions = random.sample(active_questions, num_questions)
         score = 0
         for question in selected_questions:
             user_answer = input(question["text"] + "\nYour answer: ")
             if self.check_answer(user_answer, question):
                 score += 1
-        
+
+        score_percentage = (score / num_questions) * 100
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        score_info = f"Score: {score}/{num_questions} ({score_percentage:.2f}%) - {current_time}\n"
+
+        with open("results.txt", "a") as file:
+            file.write(score_info)
+
         print(f"Test completed. Score: {score}/{num_questions}")
 
     def check_answer(self, user_answer, question):
-    #self.shown += 1
+        # self.shown += 1
         if user_answer.strip().lower() == question["answer"].strip().lower():
-            #self.correct += 1
+            # self.correct += 1
             return True
         return False
+
 
 def main():
     question_manager = QuestionManager()
@@ -270,7 +284,7 @@ def main():
                     options = []
                     while True:
                         option = input("Enter an option (or type 'done' to finish): ")
-                        if option.lower() == 'done':
+                        if option.lower() == "done":
                             break
                         options.append(option)
                     question = Question(text, answer, is_quiz, options)
@@ -296,7 +310,7 @@ def main():
             # Enter Test mode
             print("\nTest mode:")
             test_mode.take_test(input("How many questions? "))
-            
+
         elif choice == "6":
             # Exit the program
             print("Exiting program.")
