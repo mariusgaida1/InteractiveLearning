@@ -252,41 +252,25 @@ class TestMode:
         elif len(active_questions) < 5:
             print("Practice mode requires at least 5 active questions.")
             return
-
         selected_questions = random.sample(active_questions, num_questions)
-        print(selected_questions)
         print()
         score = 0
         for question in selected_questions:
-            # self.question_manager.check_answer(question)
             if self.question_manager.check_answer(question):
-                # self.question_manager.check_answer(question)
                 print("Correct!")
                 score += 1
-                print(score)
             else:
                 print("Incorect!")
-                # self.question_manager.check_answer(question)
-            # user_answer = input(question["text"] + "\nYour answer: ")
-            # if self.check_answer(user_answer, question):
-            #   score += 1
             print()
-
         score_percentage = (score / num_questions) * 100
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         score_info = f"Score: {score}/{num_questions} ({score_percentage:.2f}%) - {current_time}\n"
-
         with open("results.txt", "a") as file:
             file.write(score_info)
-
         print(f"Test completed. Score: {score}/{num_questions}")
 
 
 def main():
-    question_manager = QuestionManager()
-    question_manager.load_questions()
-    practice_mode = PracticeMode(question_manager)
-    test_mode = TestMode(question_manager)
 
     # Main menu loop
     while True:
@@ -323,20 +307,30 @@ def main():
                 print(e)
 
         elif choice == "2":
+            question_manager = QuestionManager()
+            question_manager.load_questions()
             # Enter Statistics viewing mode
             print("\nStatistics viewing mode:")
             question_manager.view_statistics()
         elif choice == "3":
             # Enter Disable/Enable questions mode
+            question_manager = QuestionManager()
+            question_manager.load_questions()
             print("\nDisable/Enable questions mode:")
             question_id = input("Please enter question id for enabling or disabling: ")
             question_manager.disable_enable_question(question_id)
         elif choice == "4":
+            question_manager = QuestionManager()
+            question_manager.load_questions()
+            practice_mode = PracticeMode(question_manager)
             # Enter Practice mode
             print("\nPractice mode:")
             practice_mode.practice()
 
         elif choice == "5":
+            question_manager = QuestionManager()
+            question_manager.load_questions()
+            test_mode = TestMode(question_manager)
             # Enter Test mode
             print("\nTest mode:")
             test_mode.take_test(input("How many questions? "))
