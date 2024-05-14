@@ -176,10 +176,10 @@ class QuestionManager:
             question_text = question["text"]
             times_shown = int(question["shown"])
             correct = int(question["correct"])
-            total_attempts = (
-                times_shown if times_shown > 0 else 1
-            )  # Prevent division by zero
-            accuracy = (correct / total_attempts) * 100
+            if times_shown > 0:
+                accuracy = (correct / times_shown) * 100
+            else:
+                accuracy = 0
             print(
                 "{:<10} {:<10} {:<50} {:<15} {:<15.2f}".format(
                     question_id, is_active, question_text[:50], times_shown, accuracy
@@ -187,8 +187,25 @@ class QuestionManager:
             )
         print("-----------------------------------------------------")
 
-    # def check_answer():
-    #   ...
+    def check_answer(self, question):
+        if question["is_quiz"].lower().strip() == "yes":
+
+            # Display answer options for quiz questions
+            print(question["text"] + "\n")
+            options = ast.literal_eval(question["options"])
+            random.shuffle(options)
+            for index, option in enumerate(options, start=1):
+                print(f"{index}. {option}")
+            user_choice = int(input("Enter your choice (1, 2, 3, ...): "))
+            user_answer = options[user_choice - 1]
+        else:
+            user_answer = input(question["text"] + "\n")
+
+        if user_answer.strip().lower() == question["answer"].strip().lower():
+            self.update_field(question["question_id"], "correct")
+            return True
+        else:
+            return False
 
 
 class PracticeMode:
@@ -203,23 +220,8 @@ class PracticeMode:
 
         while True:
             question = self._select_question(active_questions)
-
-            if question["is_quiz"].lower().strip() == "yes":
-
-                # Display answer options for quiz questions
-                print(question["text"] + "\n")
-                options = ast.literal_eval(question["options"])
-                random.shuffle(options)
-                for index, option in enumerate(options, start=1):
-                    print(f"{index}. {option}")
-                user_choice = int(input("Enter your choice (1, 2, 3, ...): "))
-                user_answer = options[user_choice - 1]
-            else:
-                user_answer = input(question["text"] + "\n")
-
-            if self.check_answer(user_answer, question):
+            if self.question_manager.check_answer(question):
                 print("Correct!")
-                self.question_manager.update_field(question["question_id"], "correct")
             else:
                 print("Incorrect!")
 
@@ -236,13 +238,7 @@ class PracticeMode:
     def _select_question(self, questions):
         weights = [1 / (int(question["shown"]) + 1) for question in questions]
         return random.choices(questions, weights=weights, k=1)[0]
-
-    def check_answer(self, user_answer, question):
-        if user_answer.strip().lower() == question["answer"].strip().lower():
-            return True
-        return False
-
-
+    
 class TestMode:
     def __init__(self, question_manager):
         self.question_manager = question_manager
@@ -258,11 +254,23 @@ class TestMode:
             return
 
         selected_questions = random.sample(active_questions, num_questions)
+        print(selected_questions)
+        print()
         score = 0
         for question in selected_questions:
-            user_answer = input(question["text"] + "\nYour answer: ")
-            if self.check_answer(user_answer, question):
+            # self.question_manager.check_answer(question)
+            if self.question_manager.check_answer(question):
+                # self.question_manager.check_answer(question)
+                print("Correct!")
                 score += 1
+                print(score)
+            else:
+                print("Incorect!")
+                # self.question_manager.check_answer(question)
+            # user_answer = input(question["text"] + "\nYour answer: ")
+            # if self.check_answer(user_answer, question):
+            #   score += 1
+            print()
 
         score_percentage = (score / num_questions) * 100
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -272,11 +280,6 @@ class TestMode:
             file.write(score_info)
 
         print(f"Test completed. Score: {score}/{num_questions}")
-
-    def check_answer(self, user_answer, question):
-        if user_answer.strip().lower() == question["answer"].strip().lower():
-            return True
-        return False
 
 
 def main():
