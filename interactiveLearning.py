@@ -1,6 +1,7 @@
 import csv
 import random
 from datetime import datetime
+import ast
 
 
 class Question:
@@ -54,12 +55,6 @@ class Question:
             raise ValueError("Question answer cannot be empty")
         self._answer = _answer
 
-    def disable(self):
-        self.is_active = False
-
-    def enable(self):
-        self.is_active = True
-
     def add_question(self):
         with open(self.filename, "a", newline="") as csvfile:
             fieldnames = [
@@ -108,9 +103,6 @@ class QuestionManager:
                 }
                 self.questions.append(question)
 
-    # def get_questions(self):
-    #   return self.questions
-
     def get_active_questions(self):
         return [
             question for question in self.questions if question["is_active"] == "True"
@@ -147,40 +139,10 @@ class QuestionManager:
             writer.writeheader()
             writer.writerows(self.questions)
 
-
-    def enable_question(self, question_id):
+    def update_field(self, question_id, field_name):
         for question in self.questions:
             if question["question_id"] == question_id:
-                question["is_active"] = "True"
-                return True
-        return False
-
-    def update_shown_field(self, question_id):
-        for question in self.questions:
-            if question["question_id"] == question_id:
-                question["shown"] = int(question["shown"]) + 1
-                break
-
-        # Update the CSV file
-        with open(self.filename, "w", newline="") as csvfile:
-            fieldnames = [
-                "question_id",
-                "text",
-                "answer",
-                "is_quiz",
-                "options",
-                "is_active",
-                "shown",
-                "correct",
-            ]
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-            writer.writeheader()
-            writer.writerows(self.questions)
-
-    def update_correct_field(self, question_id):
-        for question in self.questions:
-            if question["question_id"] == question_id:
-                question["correct"] = int(question["correct"]) + 1
+                question[field_name] = int(question[field_name]) + 1
                 break
 
         # Update the CSV file
@@ -202,8 +164,11 @@ class QuestionManager:
     def view_statistics(self):
         print("Statistics for all questions:")
         print("-----------------------------------------------------")
-        print("{:<10} {:<10} {:<50} {:<15} {:<15}".format(
-            "ID", "Active", "Question Text", "Times Shown", "Accuracy (%)"))
+        print(
+            "{:<10} {:<10} {:<50} {:<15} {:<15}".format(
+                "ID", "Active", "Question Text", "Times Shown", "Accuracy (%)"
+            )
+        )
         print("-----------------------------------------------------")
         for question in self.questions:
             question_id = question["question_id"]
@@ -211,11 +176,19 @@ class QuestionManager:
             question_text = question["text"]
             times_shown = int(question["shown"])
             correct = int(question["correct"])
-            total_attempts = times_shown if times_shown > 0 else 1  # Prevent division by zero
+            total_attempts = (
+                times_shown if times_shown > 0 else 1
+            )  # Prevent division by zero
             accuracy = (correct / total_attempts) * 100
-            print("{:<10} {:<10} {:<50} {:<15} {:<15.2f}".format(
-                question_id, is_active, question_text[:50], times_shown, accuracy))
+            print(
+                "{:<10} {:<10} {:<50} {:<15} {:<15.2f}".format(
+                    question_id, is_active, question_text[:50], times_shown, accuracy
+                )
+            )
         print("-----------------------------------------------------")
+
+    # def check_answer():
+    #   ...
 
 
 class PracticeMode:
@@ -230,32 +203,42 @@ class PracticeMode:
 
         while True:
             question = self._select_question(active_questions)
-            user_answer = input(question["text"] + "\n")
 
             if question["is_quiz"].lower().strip() == "yes":
+
                 # Display answer options for quiz questions
-                for index, option in enumerate(question["options"]):
-                    print(f"{index + 1}. {option}")
+                print(question["text"] + "\n")
+                options = ast.literal_eval(question["options"])
+                random.shuffle(options)
+                for index, option in enumerate(options, start=1):
+                    print(f"{index}. {option}")
                 user_choice = int(input("Enter your choice (1, 2, 3, ...): "))
-                user_answer = question.options[user_choice - 1]
+                user_answer = options[user_choice - 1]
+            else:
+                user_answer = input(question["text"] + "\n")
 
             if self.check_answer(user_answer, question):
-                # if Question(question["text"], question["answer"], question["is_quiz"],question["options"],question["is_active"],question["shown"],question["correct"]).check_answer(user_answer):
                 print("Correct!")
-                self.question_manager.update_correct_field(question["question_id"])
+                self.question_manager.update_field(question["question_id"], "correct")
             else:
                 print("Incorrect!")
 
-            self.question_manager.update_shown_field(question["question_id"])
+            self.question_manager.update_field(question["question_id"], "shown")
+            print()
+            if (
+                input('Type "done" for back to the Main Menu: ').lower().strip()
+                == "done"
+            ):
+                print()
+                break
+            print()
 
     def _select_question(self, questions):
         weights = [1 / (int(question["shown"]) + 1) for question in questions]
         return random.choices(questions, weights=weights, k=1)[0]
 
     def check_answer(self, user_answer, question):
-        # self.shown += 1
         if user_answer.strip().lower() == question["answer"].strip().lower():
-            # self.correct += 1
             return True
         return False
 
@@ -291,9 +274,7 @@ class TestMode:
         print(f"Test completed. Score: {score}/{num_questions}")
 
     def check_answer(self, user_answer, question):
-        # self.shown += 1
         if user_answer.strip().lower() == question["answer"].strip().lower():
-            # self.correct += 1
             return True
         return False
 
@@ -330,6 +311,7 @@ def main():
                         if option.lower() == "done":
                             break
                         options.append(option)
+                    options.append(answer)
                     question = Question(text, answer, is_quiz, options)
                 else:
                     question = Question(text, answer, is_quiz)
