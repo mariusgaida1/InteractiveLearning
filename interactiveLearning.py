@@ -81,7 +81,6 @@ class Question:
                 }
             )
 
-
 class QuestionManager:
     def __init__(self, filename="questions.csv"):
         self.filename = filename
@@ -124,20 +123,8 @@ class QuestionManager:
                         break
 
         # Update the CSV file
-        with open(self.filename, "w", newline="") as csvfile:
-            fieldnames = [
-                "question_id",
-                "text",
-                "answer",
-                "is_quiz",
-                "options",
-                "is_active",
-                "shown",
-                "correct",
-            ]
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-            writer.writeheader()
-            writer.writerows(self.questions)
+        self.update_csv_file()
+
 
     def update_field(self, question_id, field_name):
         for question in self.questions:
@@ -146,6 +133,9 @@ class QuestionManager:
                 break
 
         # Update the CSV file
+        self.update_csv_file()
+    
+    def update_csv_file(self):
         with open(self.filename, "w", newline="") as csvfile:
             fieldnames = [
                 "question_id",
@@ -261,6 +251,7 @@ class TestMode:
                 score += 1
             else:
                 print("Incorect!")
+            self.question_manager.update_field(question["question_id"], "shown")
             print()
         score_percentage = (score / num_questions) * 100
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
