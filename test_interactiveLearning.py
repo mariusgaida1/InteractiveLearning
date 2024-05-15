@@ -27,11 +27,11 @@ class TestPracticeMode(unittest.TestCase):
     
     def test_select_question(self):
         # Test if a question is selected properly based on weights
-        # Prepare some mock active questions with different shown counts
+        # Prepare some mock active questions with different correct counts
         active_questions = [
-            {"question_id": 1, "shown": 0},
-            {"question_id": 2, "shown": 100},
-            {"question_id": 3, "shown": 200}
+            {"question_id": 1, "correct": 0},
+            {"question_id": 2, "correct": 100},
+            {"question_id": 3, "correct": 200}
         ]
         for _ in range(20):
             selected_question = self.practice_mode._select_question(active_questions)

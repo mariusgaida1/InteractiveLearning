@@ -160,7 +160,7 @@ class QuestionManager:
         for question in self.questions:
             if question["question_id"] == question_id:
                 # Confirm user action
-                print(type(question["question_id"]))
+                print(f'Question: {question["text"]} Answer: {question["answer"]}')
                 if question["is_active"] == "True":
                     confirm = input('Type "Yes" to confirm question disabling: ')
                     if confirm.lower().strip() == "yes":
@@ -329,8 +329,8 @@ class PracticeMode:
         Returns:
             dict: The selected question.
         """
-        # Calculate weights for each question based on the number of times it has been shown
-        weights = [1 / (int(question["shown"]) + 1) for question in questions]
+        # Calculate weights for each question based on the number of times it has been answered correct
+        weights = [1 / (int(question["correct"]) + 1) for question in questions]
 
         # Choose a question randomly based on the weights
         return random.choices(questions, weights=weights, k=1)[0]
