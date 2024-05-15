@@ -81,6 +81,7 @@ class Question:
                 }
             )
 
+
 class QuestionManager:
     def __init__(self, filename="questions.csv"):
         self.filename = filename
@@ -125,7 +126,6 @@ class QuestionManager:
         # Update the CSV file
         self.update_csv_file()
 
-
     def update_field(self, question_id, field_name):
         for question in self.questions:
             if question["question_id"] == question_id:
@@ -134,7 +134,7 @@ class QuestionManager:
 
         # Update the CSV file
         self.update_csv_file()
-    
+
     def update_csv_file(self):
         with open(self.filename, "w", newline="") as csvfile:
             fieldnames = [
@@ -218,7 +218,11 @@ class PracticeMode:
             self.question_manager.update_field(question["question_id"], "shown")
             print()
             if (
-                input('Type "done" for back to the Main Menu: ').lower().strip()
+                input(
+                    'Type "done" to go back to the Main Menu or press "Enter" to continue: '
+                )
+                .lower()
+                .strip()
                 == "done"
             ):
                 print()
@@ -228,7 +232,8 @@ class PracticeMode:
     def _select_question(self, questions):
         weights = [1 / (int(question["shown"]) + 1) for question in questions]
         return random.choices(questions, weights=weights, k=1)[0]
-    
+
+
 class TestMode:
     def __init__(self, question_manager):
         self.question_manager = question_manager
@@ -240,7 +245,7 @@ class TestMode:
             print("Not enough active questions to take the test.")
             return
         elif len(active_questions) < 5:
-            print("Practice mode requires at least 5 active questions.")
+            print("Test mode requires at least 5 active questions.")
             return
         selected_questions = random.sample(active_questions, num_questions)
         print()
@@ -281,7 +286,9 @@ def main():
             try:
                 text = input("Enter question text: ")
                 answer = input("Enter question answer: ")
-                is_quiz = input("Is quiz: ")
+                is_quiz = input(
+                    'Type "Yes" to make quiz question or press "Enter" to have free form question: '
+                )
                 if is_quiz.lower().strip() == "yes":
                     options = []
                     while True:
@@ -315,7 +322,7 @@ def main():
             question_manager.load_questions()
             practice_mode = PracticeMode(question_manager)
             # Enter Practice mode
-            print("\nPractice mode:")
+            print("\nPractice mode:\n")
             practice_mode.practice()
 
         elif choice == "5":
@@ -323,7 +330,7 @@ def main():
             question_manager.load_questions()
             test_mode = TestMode(question_manager)
             # Enter Test mode
-            print("\nTest mode:")
+            print("\nTest mode:\n")
             test_mode.take_test(input("How many questions? "))
 
         elif choice == "6":
