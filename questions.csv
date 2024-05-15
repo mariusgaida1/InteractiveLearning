@@ -1,0 +1,6 @@
+question_id,text,answer,is_quiz,options,is_active,shown,correct
+1,What is the capital of France?,Paris,yes,"['Berlin', 'Rome', 'London', 'Paris']",True,0,0
+2,"Who wrote the play ""Hamlet""?",William Shakespeare,,,True,0,0
+3,What is the chemical symbol for water?,H2O,yes,"['C2H5OH', 'H2O']",True,0,0
+4,Who painted the Mona Lisa?,Leonardo da Vinci,,,True,0,0
+5,What is the largest planet in our solar system?,Jupiter,yes,"['Mars', 'Venera', 'Earth', 'Jupiter']",True,0,0
