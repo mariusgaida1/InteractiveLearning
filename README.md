@@ -7,7 +7,6 @@ When the program starts, user is able to choose between the following modes:
 * Disable/enable questions.
 * Practice mode.
 * Test mode.
-* (Bonus) Profile Select
 ### Adding questions mode:
 In this mode, users is able to add two types of questions - quiz questions or free-form text questions. A quiz question requires the user to choose one of the given answer options. A free-form question requires the user to enter some text and compare it with the expected answer to determine whether it is correct.
 
